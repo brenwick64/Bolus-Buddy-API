@@ -18,7 +18,7 @@ def hello_world():
 @app.route("/bolus/")
 @cross_origin()
 def json_test():
-    bolus = request.args.get('bolus', '', type=int)
+    bolus = request.args.get('bolus', '', type=str)
     regression = BolusRegression()
     string_prediction = str(round(regression.get_prediction(bolus), 2))
     return {
