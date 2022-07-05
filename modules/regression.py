@@ -38,3 +38,9 @@ class BolusRegression:
         pred = self.model.predict(arr)
         converted_pred = self.scaler.inverse_transform(pred)
         return converted_pred[0][0]
+
+    def test_get_bolus(self, dataDict):
+        print(dataDict)
+        testDict = {'aggressiveBolus': 5.5,
+                    'reccomendedBolus': 4.57, 'passiveBolus': 3.7}
+        return testDict
