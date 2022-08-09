@@ -1,8 +1,10 @@
+from cgi import test
 from imp import load_module
 from json import load
 import pickle
 import tensorflow as tf
 import numpy as np
+import random
 
 
 class BolusRegression:
@@ -44,3 +46,31 @@ class BolusRegression:
         testDict = {'aggressiveBolus': 5.5,
                     'reccomendedBolus': 4.57, 'passiveBolus': 3.7}
         return testDict
+
+    def predict_bolus(self, payload, bolus_guess):
+        injectedArr = np.array(
+            [payload['carbs'], bolus_guess, payload['basal'], payload['bg']])
+
+        # Per error log - used to fit standard scaler
+        injectedArr = injectedArr.reshape(-1, 1)
+        injectedArr = self.scaler.transform(injectedArr, copy=None)
+        injectedArr = np.expand_dims(injectedArr,  axis=0)
+        prediction = self.model.predict(injectedArr)
+        converted_pred = self.scaler.inverse_transform(prediction)
+
+        return converted_pred[0][0]
+
+    def compute_optimal_bolus(self, payload):
+        guess = payload['bolus']
+        best_bolus = guess
+        for i in range(35):
+            guess = guess + random.uniform(-0.5, 0.5)
+            guess_pred = self.predict_bolus(payload, guess)
+            best_pred = self.predict_bolus(payload, best_bolus)
+            if((abs(guess_pred) - 120.0) < (abs(best_pred) - 120.0)):
+                best_bolus = guess
+            else:
+                guess = best_bolus
+        print('best prediction: ' + str(best_pred))
+
+        return str(best_bolus)

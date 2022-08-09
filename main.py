@@ -41,7 +41,7 @@ def get_prediction():
             return {"error": "invalid json data"}
         else:
             prediction_payload = json.dumps(
-                regression.test_get_bolus(validData))
+                regression.compute_optimal_bolus(validData))
             return prediction_payload
 
 
@@ -50,7 +50,6 @@ def get_prediction():
 
 def validate_data(data):
     validData = {}
-
     # Checks if required fields exist
     if not {'carbs', 'bg', 'basal', 'bolus'} <= data.keys():
         return False
