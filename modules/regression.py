@@ -1,6 +1,4 @@
-from cgi import test
-from imp import load_module
-from json import load
+import json
 import pickle
 import tensorflow as tf
 import numpy as np
@@ -28,25 +26,6 @@ class BolusRegression:
             open('./Model/standard_scaler.pkl', 'rb'))
         return standard_scaler
 
-    # TODO: Convert array of numerical values into scaled values
-    def get_prediction(self, guess):
-        arr = np.array([0.0, 0.0, 0.6, 0.0, 25.0, guess, 0.608, 287])
-        print(arr)
-        # Per error log - used to fit standard scaler
-        arr = arr.reshape(-1, 1)
-
-        arr = self.scaler.transform(arr, copy=None)
-        arr = np.expand_dims(arr,  axis=0)
-        pred = self.model.predict(arr)
-        converted_pred = self.scaler.inverse_transform(pred)
-        return converted_pred[0][0]
-
-    def test_get_bolus(self, dataDict):
-        print(dataDict)
-        testDict = {'aggressiveBolus': 5.5,
-                    'reccomendedBolus': 4.57, 'passiveBolus': 3.7}
-        return testDict
-
     def predict_bolus(self, payload, bolus_guess):
         injectedArr = np.array(
             [payload['carbs'], bolus_guess, payload['basal'], payload['bg']])
@@ -60,17 +39,28 @@ class BolusRegression:
 
         return converted_pred[0][0]
 
-    def compute_optimal_bolus(self, payload):
+    def compute_bolus(self, payload, bias):
         guess = payload['bolus']
         best_bolus = guess
+        # Reccomended Bolus
         for i in range(35):
-            guess = guess + random.uniform(-0.5, 0.5)
+            guess = guess + random.uniform((bias * -1), (bias))
             guess_pred = self.predict_bolus(payload, guess)
             best_pred = self.predict_bolus(payload, best_bolus)
+            # Drifts optimal bolus over each iteration
             if((abs(guess_pred) - 120.0) < (abs(best_pred) - 120.0)):
                 best_bolus = guess
             else:
                 guess = best_bolus
-        print('best prediction: ' + str(best_pred))
 
-        return str(best_bolus)
+        return best_bolus
+
+    def get_predictions(self, payload):
+        recommended_bolus = self.compute_bolus(payload, 0.5)
+        passive_bolus = self.compute_bolus(payload, 0.25)
+        aggressive_bolus = self.compute_bolus(payload, 0.75)
+
+        return json.dumps({"recommended_bolus": recommended_bolus,
+                           "passive_bolus": passive_bolus,
+                           "aggressive_bolus": aggressive_bolus
+                           })
