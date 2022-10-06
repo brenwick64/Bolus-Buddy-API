@@ -5,7 +5,7 @@ from modules.regression import BolusRegression
 
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources='*')
 app.config['CORS_HEADERS'] = 'Content-Type'
 
 
