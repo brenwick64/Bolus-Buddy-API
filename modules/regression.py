@@ -1,8 +1,17 @@
+import warnings
 import json
 import pickle
 import tensorflow as tf
 import numpy as np
 import random
+
+
+def warn(*args, **kwargs):  # TODO - Bandaid solution to prevent flooding with SKlearn warking logs
+    pass
+
+
+warnings.warn = warn
+
 
 """
     Class for accepting a JSON payload of diabetic bolus event data and
@@ -20,7 +29,6 @@ class BolusRegression:
     def __init__(self):
         self.model = self.load_model()
         self.scaler = self.load_scaler()
-
     """
         Loads and compiles a keras tensorflow model using a JSON export 
         of the model, and a serialized binary file of the weights and biases.
@@ -92,6 +100,8 @@ class BolusRegression:
             guess = guess + random.uniform((bias * -1), (bias))
             guess_pred = self.predict_bg(payload, guess)
             best_pred = self.predict_bg(payload, best_bolus)
+            print('bias:', bias, ' - ', 'guess_pred:',
+                  guess_pred, ' best_pred:', best_pred)
             # Drifts optimal bolus over each iteration
             if((abs(guess_pred) - 120.0) < (abs(best_pred) - 120.0)):
                 best_bolus = guess
