@@ -8,11 +8,26 @@ app = Flask(__name__)
 CORS(app, resources='*')
 app.config['CORS_HEADERS'] = 'Content-Type'
 
+"""
+    ROUTE - '/'
+    ALLOWED METHOD(S) - GET
+    DESCRIPTION - Provides info to users about the API and accessable routes
+"""
+# TODO: Finish API guide
+
 
 @app.route("/")
 @cross_origin()
 def hello_world():
     return "<p>Hello, World!</p>"
+
+
+"""
+    ROUTE - '/prediction'
+    ALLOWED METHOD(S) - GET, POST
+    DESCRIPTION - Accepts a JSON payload of valid diabetic user data and
+                  returns a prediction JSON payload. 
+"""
 
 
 @app.route("/prediction", methods=['GET', 'POST'])
@@ -32,7 +47,12 @@ def get_prediction():
             return prediction_payload
 
 
-# Helper Functions
+"""
+    Helper function to validate the correct JSON data going into 
+    the route.
+"""
+
+
 def validate_data(data):
     validData = {}
     # Checks if required fields exist
@@ -48,5 +68,8 @@ def validate_data(data):
     return validData
 
 
+"""
+    Entrypoint for Bolus_Buddy_API
+"""
 if __name__ == "__main__":
     app.run(threaded=True, port=5000)
